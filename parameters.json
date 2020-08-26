@@ -5,23 +5,23 @@
         "frontDoorName": {
             "value": ""
         },
-        "managementAppBackendUrl": {
+        "app1BackendUrl": {
             "value": ""
         },
-        "portalAppBackendUrl": {
+        "app2BackendUrl": {
             "value": ""
         },
         "customers": {
             "value": [
                 {
                     "customerId": "customer-a",
-                    "managementAppFrontendHostName": "management.customera.com",
-                    "portalAppFrontendHostName": "portal.customera.com"
+                    "app1HostName": "management.customera.com",
+                    "app2HostName": "portal.customera.com"
                 },
                 {
                     "customerId": "customer-b",
-                    "managementAppFrontendHostName": "management.customerb.com",
-                    "portalAppFrontendHostName": "portal.customerb.com"
+                    "app1HostName": "management.customerb.com",
+                    "app2HostName": "portal.customerb.com"
                 }
             ]
         }
