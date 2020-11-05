@@ -20,8 +20,9 @@
         "frontDoorBackendPoolApp2Name": "backend-pool-app-2",
 
         // Assemble an object representing the default frontend for the Front Door instance.
+        "frontDoorFrontendDefaultName": "frontend-default",
         "frontDoorFrontendDefault": {
-            "name": "frontend-default",
+            "name": "[variables('frontDoorFrontendDefaultName')]",
             "properties": {
                 "hostName": "[concat(parameters('frontDoorName'), '.azurefd.net')]",
                 "sessionAffinityEnabledState": "Disabled",
@@ -31,6 +32,11 @@
 
         "copy": [
             // Assemble an array of frontends for each customer's hostnames.
+            {
+                "name": "frontDoorFrontendNamesApp1",
+                "count": "[length(parameters('customers'))]",
+                "input": "[frontdoorarm.createApp1ResourceName(parameters('customers')[copyIndex('frontDoorFrontendNamesApp1')].customerId)]"
+            },
             {
                 "name": "frontDoorFrontendsApp1",
                 "count": "[length(parameters('customers'))]",
@@ -42,6 +48,11 @@
                         "sessionAffinityTtlSeconds": 0
                     }
                 }
+            },
+            {
+                "name": "frontDoorFrontendNamesApp2",
+                "count": "[length(parameters('customers'))]",
+                "input": "[frontdoorarm.createApp2ResourceName(parameters('customers')[copyIndex('frontDoorFrontendNamesApp2')].customerId)]"
             },
             {
                 "name": "frontDoorFrontendsApp2",
@@ -73,9 +84,11 @@
             }
         ],
 
+        // Assemble an array of all application frontends, which will be used for the custom HTTPS configuration.
+        "frontDoorFrontendAppNames": "[concat(variables('frontDoorFrontendNamesApp1'), variables('frontDoorFrontendNamesApp2'))]",
+
         // Assemble an array of all Front Door frontends.
         "frontDoorFrontends": "[concat(array(variables('frontDoorFrontendDefault')), variables('frontDoorFrontendsApp1'), variables('frontDoorFrontendsApp2'))]"
-
     },
     "resources": [
         {
@@ -201,6 +214,26 @@
                     }
                 ],
                 "enabledState": "Enabled"
+            }
+        },
+        {
+            "apiVersion": "2020-07-01",
+            "type": "Microsoft.Network/frontdoors/frontendEndpoints/customHttpsConfiguration",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('frontDoorFrontendAppNames')[copyIndex('customHttpsConfigurationCopy')] , '/default')]",
+            "dependsOn": [
+                "[parameters('frontDoorName')]"
+            ],
+            "properties": {
+                "protocolType": "ServerNameIndication",
+                "certificateSource": "FrontDoor",
+                "frontDoorCertificateSourceParameters": {
+                    "certificateType": "Dedicated"
+                },
+                "minimumTlsVersion":"1.2"
+            },
+            "copy": {
+                "name": "customHttpsConfigurationCopy",
+                "count": "[length(variables('frontDoorFrontendAppNames'))]"
             }
         }
     ],
